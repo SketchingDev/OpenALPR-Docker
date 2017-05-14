@@ -2,6 +2,7 @@ sudo: required
 services:
   - docker
 before_install:
+  - sudo apt-get install -y expect 
   - docker build -t flyingtophat/alpr .
 script:
 - ./test.sh
