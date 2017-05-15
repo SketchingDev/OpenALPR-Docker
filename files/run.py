@@ -70,15 +70,17 @@ def process_image(alpr, image, rules):
     return results
 
 
-parser = argparse.ArgumentParser(prog='OpenALPR Docker image', description='Process some integers.')
-parser.add_argument('url', help='URL about')
-parser.add_argument('--country', help='Country to set for ALPR', default='eu')
-parser.add_argument('--region', help='Region to set for ALPR', default='gb')
+parser = argparse.ArgumentParser(prog='OpenALPR Docker image',
+                                 description='Dockerised OpenALPR for polling URLs - with additional image preprocessing')
+
+parser.add_argument('url', help='url to poll for an image')
+parser.add_argument('--country', help='country to set for ALPR', default='eu')
+parser.add_argument('--region', help='region to set for ALPR', default='gb')
 parser.add_argument('--verbose', help='increase output verbosity', action='store_true')
-parser.add_argument('--interval', help='Interval between retrieving a new image', type=int, default=10)
+parser.add_argument('--interval', help='interval between polling for a new image to process', type=int, default=10)
 parser.add_argument('--preprocess',
                     nargs='*',
-                    help='preprocessor command',
+                    help='prewarp value to apply against each, and/or the x1,y1,x2,y2 values to crop',
                     default=[],
                     action=PreProcessRulesAction)
 
@@ -107,6 +109,8 @@ def poll(alpr, url, interval, preprocessing_rules):
 
     s.enter(interval, 1, poll, (alpr, args.url, interval, preprocessing_rules))
 
+if args.verbose and len(args.preprocess) > 0:
+    print("Rules loaded: {}".format(args.preprocess))
 
 s = sched.scheduler(time.time, time.sleep)
 poll(open_alpr, args.url, args.interval, args.preprocess)
