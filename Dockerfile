@@ -13,4 +13,4 @@ ENV PYTHONUNBUFFERED=0 \
     OPEN_ALPR_CONFIG_PATH="/opt/docker-alpr/openalpr.conf"
 
 ENTRYPOINT ["python", "run.py"]
-CMD "-h"
+CMD ["--help"]
