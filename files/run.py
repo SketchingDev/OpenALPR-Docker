@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import argparse
 import io
 import json
@@ -6,9 +8,14 @@ import sched
 import sys
 import time
 
+import requests
 import urllib2 as urllib
 from PIL import Image
 from openalpr import Alpr
+
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 
 class PreProcessRulesAction(argparse.Action):
@@ -73,7 +80,8 @@ def process_image(alpr, image, rules):
 parser = argparse.ArgumentParser(prog='OpenALPR Docker image',
                                  description='Dockerised OpenALPR for polling URLs - with additional image preprocessing')
 
-parser.add_argument('url', help='url to poll for an image')
+parser.add_argument('input', help='url to poll for an image')
+parser.add_argument('output', help='url to post the json response')
 parser.add_argument('--country', help='country to set for ALPR', default='eu')
 parser.add_argument('--region', help='region to set for ALPR', default='gb')
 parser.add_argument('--verbose', help='increase output verbosity', action='store_true')
@@ -95,23 +103,36 @@ if not open_alpr.is_loaded():
 open_alpr.set_default_region(args.region)
 
 
-def poll(alpr, url, interval, preprocessing_rules):
+def poll(alpr, input_url, output_url, interval, preprocessing_rules):
     if args.verbose:
-        print("Polling {}".format(url))
+        print("Polling {}".format(input_url))
+
+    image = None
     try:
-        image = download_image(url)
-        results = process_image(alpr, image, preprocessing_rules)
-        print(json.dumps({"source": url, "results": results}))
+        image = download_image(input_url)
     except urllib.URLError:
-        if args.verbose:
-            print("Failed to poll {}".format(url))
+        eprint("Failed to poll {}".format(input_url))
         pass
 
-    s.enter(interval, 1, poll, (alpr, args.url, interval, preprocessing_rules))
+    if image is not None:
+        alpr_results = process_image(alpr, image, preprocessing_rules)
+        json_data = json.dumps({"source": input_url, "results": alpr_results})
+
+        if args.verbose:
+            print("POST data to {}: {}".format(output_url, json_data))
+
+        try:
+            requests.post(output_url, data=json_data)
+        except requests.exceptions.ConnectionError:
+            eprint("Failed to POST data to {}".format(output_url))
+            pass
+
+    s.enter(interval, 1, poll, (alpr, input_url, output_url, interval, preprocessing_rules))
+
 
 if args.verbose and len(args.preprocess) > 0:
     print("Rules loaded: {}".format(args.preprocess))
 
 s = sched.scheduler(time.time, time.sleep)
-poll(open_alpr, args.url, args.interval, args.preprocess)
+poll(open_alpr, args.input, args.output, args.interval, args.preprocess)
 s.run()

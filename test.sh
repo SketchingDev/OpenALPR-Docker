@@ -17,7 +17,8 @@ TIMEOUT=10
 
 # Test 1
 IMAGE_NAME=single_horizontal.jpg
-docker run --name $CONTAINER_NAME -d $DOCKER_IMAGE_NAME http://127.0.0.1/$IMAGE_NAME --interval 1
+docker run --name $CONTAINER_NAME -d $DOCKER_IMAGE_NAME http://127.0.0.1/$IMAGE_NAME http://127.0.0.1/ --verbose \
+      --interval 1
 
 docker exec -d $CONTAINER_NAME python -m SimpleHTTPServer 80
 docker cp ./test_files/$IMAGE_NAME $CONTAINER_NAME:/opt/docker-alpr/
@@ -36,8 +37,9 @@ fi
 
 # Test 2
 IMAGE_NAME=multiple_rotated.jpg
-docker run --name $CONTAINER_NAME -d $DOCKER_IMAGE_NAME http://127.0.0.1/$IMAGE_NAME --interval 1 \
-    --preprocess planar,429.000000,300.000000,-0.000000,0.000000,0.670000,1.000000,1.000000,0.000000,0.000000
+docker run --name $CONTAINER_NAME -d $DOCKER_IMAGE_NAME http://127.0.0.1/$IMAGE_NAME http://127.0.0.1/ --verbose \
+      --interval 1 \
+      --preprocess planar,429.000000,300.000000,-0.000000,0.000000,0.670000,1.000000,1.000000,0.000000,0.000000
 
 docker exec -d $CONTAINER_NAME python -m SimpleHTTPServer 80
 docker cp ./test_files/$IMAGE_NAME $CONTAINER_NAME:/opt/docker-alpr/
@@ -56,7 +58,8 @@ fi
 
 # Test 3
 IMAGE_NAME=multiple_rotated.jpg
-docker run --name $CONTAINER_NAME -d $DOCKER_IMAGE_NAME http://127.0.0.1/$IMAGE_NAME --interval 1 \
+docker run --name $CONTAINER_NAME -d $DOCKER_IMAGE_NAME http://127.0.0.1/$IMAGE_NAME http://127.0.0.1/ --verbose \
+      --interval 1 \
       --preprocess 0,0,435,299=planar,429.000000,300.000000,-0.000000,0.000000,0.670000,1.000000,1.000000,0.000000,0.000000 \
       --preprocess 435,0,705,299=planar,272.000000,300.000000,-0.000000,0.000000,-0.650000,1.000000,1.000000,0.000000,0.000000
 

@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y curl openalpr python-openalpr vim
 
 RUN curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py" \
  && python "get-pip.py" \
- && pip install Pillow
+ && pip install Pillow requests
 
 ADD files /opt/docker-alpr/
 WORKDIR /opt/docker-alpr/
