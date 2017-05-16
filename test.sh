@@ -1,9 +1,8 @@
 #!/bin/bash
+set -e
+set -o pipefail
 
 function find_in_docker_log {
-
-    #https://spin.atomicobject.com/2016/12/08/monitoring-stdout-with-a-timeout/
-
     CONTAINER_NAME=$1
     TIMEOUT=$2
     SUBSTRING=$3
@@ -15,7 +14,7 @@ DOCKER_IMAGE_NAME=flyingtophat/alpr
 CONTAINER_NAME=alpr_test
 TIMEOUT=10
 
-# Test 1
+echo "TEST 1 - Assert number found"
 IMAGE_NAME=single_horizontal.jpg
 docker run --name $CONTAINER_NAME -d $DOCKER_IMAGE_NAME http://127.0.0.1/$IMAGE_NAME http://127.0.0.1/ --verbose \
       --interval 1
@@ -25,8 +24,8 @@ docker cp ./test_files/$IMAGE_NAME $CONTAINER_NAME:/opt/docker-alpr/
 
 find_in_docker_log $CONTAINER_NAME $TIMEOUT "WR62XDF"
 TEST_RESULT=$?
-docker rm -f $CONTAINER_NAME
 
+docker rm -f $CONTAINER_NAME
 if [ $TEST_RESULT == 0 ]; then
     echo "SUCCESS"
 else
@@ -35,7 +34,7 @@ else
 fi
 
 
-# Test 2
+echo "TEST 2 - Assert number found after prewarp applied"
 IMAGE_NAME=multiple_rotated.jpg
 docker run --name $CONTAINER_NAME -d $DOCKER_IMAGE_NAME http://127.0.0.1/$IMAGE_NAME http://127.0.0.1/ --verbose \
       --interval 1 \
@@ -46,8 +45,8 @@ docker cp ./test_files/$IMAGE_NAME $CONTAINER_NAME:/opt/docker-alpr/
 
 find_in_docker_log $CONTAINER_NAME $TIMEOUT "HK57GHT"
 TEST_RESULT=$?
-docker rm -f $CONTAINER_NAME
 
+docker rm -f $CONTAINER_NAME
 if [ $TEST_RESULT == 0 ]; then
     echo "SUCCESS"
 else
@@ -55,8 +54,7 @@ else
     exit 1
 fi
 
-
-# Test 3
+echo "TEST 3 - Assert two numbers found after prewarp applied to cropped regions"
 IMAGE_NAME=multiple_rotated.jpg
 docker run --name $CONTAINER_NAME -d $DOCKER_IMAGE_NAME http://127.0.0.1/$IMAGE_NAME http://127.0.0.1/ --verbose \
       --interval 1 \
@@ -68,8 +66,8 @@ docker cp ./test_files/$IMAGE_NAME $CONTAINER_NAME:/opt/docker-alpr/
 
 find_in_docker_log $CONTAINER_NAME $TIMEOUT "WR62XDF" && find_in_docker_log $CONTAINER_NAME $TIMEOUT "HK57GHT"
 TEST_RESULT=$?
-docker rm -f $CONTAINER_NAME
 
+docker rm -f $CONTAINER_NAME
 if [ $TEST_RESULT == 0 ]; then
     echo "SUCCESS"
 else
